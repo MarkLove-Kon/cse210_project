@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 
 class MindfulnessProgram
@@ -29,7 +30,12 @@ class MindfulnessProgram
             else if (choice == "4")
             {
                 Console.WriteLine("Thank you for using the Mindfulness Program. Goodbye!");
+                SaveLog();
                 break;
+            }
+            else if (choice == "5")
+            {
+                DisplayLog();
             }
             else
             {
@@ -38,6 +44,10 @@ class MindfulnessProgram
             }
         }
     }
+
+    static List<string> activityLog = new List<string>();
+    static List<string> usedPrompts = new List<string>();
+    static List<string> usedQuestions = new List<string>();
 
     static void DisplayMenu()
     {
@@ -48,8 +58,9 @@ class MindfulnessProgram
         Console.WriteLine("2. Reflection Activity");
         Console.WriteLine("3. Listing Activity");
         Console.WriteLine("4. Quit");
+        Console.WriteLine("5. Display Activity Log");
         Console.WriteLine("========================================");
-        Console.Write("Select an activity (1-4): ");
+        Console.Write("Select an activity (1-5): ");
     }
 
     static int GetDuration(string activityName)
@@ -60,6 +71,7 @@ class MindfulnessProgram
             Console.Write($"Enter the duration in seconds for {activityName}: ");
             if (int.TryParse(Console.ReadLine(), out duration))
             {
+                activityLog.Add($"Started {activityName} for {duration} seconds.");
                 return duration;
             }
             else
@@ -88,12 +100,13 @@ class MindfulnessProgram
         while (DateTime.Now < endTime)
         {
             Console.WriteLine("Breathe in...");
-            Pause(4);
+            AnimateBreathing(4);
             Console.WriteLine("Breathe out...");
-            Pause(4);
+            AnimateBreathing(4);
         }
 
         Console.WriteLine("Good job! You have completed the breathing activity.");
+        activityLog.Add("Completed Breathing Activity.");
         Pause(2);
     }
 
@@ -118,18 +131,20 @@ class MindfulnessProgram
         Console.WriteLine("This activity will help you reflect on times in your life when you have shown strength and resilience.");
         Thread.Sleep(2000);
 
-        Random random = new Random();
-        int randomIndex = random.Next(prompts.Count);
-        Console.WriteLine(prompts[randomIndex]);
+        string prompt = GetUniquePrompt(prompts);
+        string question = GetUniqueQuestion(questions);
+
+        Console.WriteLine(prompt);
         Pause(5);
 
-        foreach (string question in questions)
+        foreach (string q in questions)
         {
-            Console.WriteLine(question);
+            Console.WriteLine(q);
             Pause(5);
         }
 
         Console.WriteLine("Good job! You have completed the reflection activity.");
+        activityLog.Add("Completed Reflection Activity.");
         Pause(2);
     }
 
@@ -156,6 +171,66 @@ class MindfulnessProgram
         }
 
         Console.WriteLine("Good job! You have completed the listing activity.");
+        activityLog.add("Completed Listing Activity.");
         Pause(2);
+    }
+
+    static void AnimateBreathing(int seconds)
+    {
+        for (int i = 1; i <= seconds; i++)
+        {
+            int length = (int)(i / (float)seconds * 10);
+            Console.WriteLine(new string('=', length));
+            Thread.Sleep(1000);
+        }
+    }
+
+    static string GetUniquePrompt(List<string> prompts)
+    {
+        Random random = new Random();
+        string prompt;
+        do
+        {
+            prompt = prompts[random.Next(prompts.Count)];
+        } while (usedPrompts.Contains(prompt) && usedPrompts.Count < prompts.Count);
+
+        usedPrompts.Add(prompt);
+        return prompt;
+    }
+
+    static string GetUniqueQuestion(List<string> questions)
+    {
+        Random random = new Random();
+        string question;
+        do
+        {
+            question = questions[random.Next(questions.Count)];
+        } while (usedQuestions.Contains(question) && usedQuestions.Count < questions.Count);
+
+        usedQuestions.Add(question);
+        return question;
+    }
+
+    static void SaveLog()
+    {
+        File.WriteAllLines("activity_log.txt", activityLog);
+        Console.WriteLine("Activity log saved.");
+    }
+
+    static void DisplayLog()
+    {
+        if (File.Exists("activity_log.txt"))
+        {
+            string[] log = File.ReadAllLines("activity_log.txt");
+            Console.WriteLine("Activity Log:");
+            foreach (string entry in log)
+            {
+                Console.WriteLine(entry);
+            }
+        }
+        else
+        {
+            Console.WriteLine("No activity log found.");
+        }
     }
 }

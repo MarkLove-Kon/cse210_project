@@ -1,236 +1,190 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Threading;
 
-class MindfulnessProgram
+public abstract class ActivityBase
 {
-    static void Main(string[] args)
+    protected string name;
+    protected string description;
+    protected int duration;
+
+    public ActivityBase(string name, string description)
     {
-        while (true)
+        this.name = name;
+        this.description = description;
+    }
+
+    public void StartActivity()
+    {
+        Console.Clear();
+        Console.WriteLine($"Starting {name} activity.");
+        Console.WriteLine(description);
+        Console.WriteLine("Enter the duration in seconds:");
+        duration = int.Parse(Console.ReadLine());
+        Console.WriteLine("Get ready to begin...");
+        ShowSpinner(3);  // Show spinner for 3 seconds
+
+        PerformActivity();
+
+        Console.WriteLine("Great job! You've completed the activity.");
+        ShowSpinner(3);  // Show spinner for 3 seconds
+        Console.WriteLine($"You've completed the {name} activity for {duration} seconds.");
+        ShowSpinner(3);  // Show spinner for 3 seconds
+    }
+
+    protected abstract void PerformActivity();
+
+    protected void ShowSpinner(int seconds)
+    {
+        for (int i = 0; i < seconds; i++)
         {
-            DisplayMenu();
-            string choice = Console.ReadLine();
-
-            if (choice == "1")
-            {
-                int duration = GetDuration("Breathing Activity");
-                BreathActivity(duration);
-            }
-            else if (choice == "2")
-            {
-                int duration = GetDuration("Reflection Activity");
-                ReflectionActivity(duration);
-            }
-            else if (choice == "3")
-            {
-                int duration = GetDuration("Listing Activity");
-                ListingActivity(duration);
-            }
-            else if (choice == "4")
-            {
-                Console.WriteLine("Thank you for using the Mindfulness Program. Goodbye!");
-                SaveLog();
-                break;
-            }
-            else if (choice == "5")
-            {
-                DisplayLog();
-            }
-            else
-            {
-                Console.WriteLine("Invalid selection. Please choose again.");
-                Thread.Sleep(2000);
-            }
+            Console.Write(".");
+            System.Threading.Thread.Sleep(1000);  // Wait for 1 second
         }
+        Console.WriteLine();
     }
 
-    static List<string> activityLog = new List<string>();
-    static List<string> usedPrompts = new List<string>();
-    static List<string> usedQuestions = new List<string>();
-
-    static void DisplayMenu()
-    {
-        Console.WriteLine("========================================");
-        Console.WriteLine("             Mindfulness Program        ");
-        Console.WriteLine("========================================");
-        Console.WriteLine("1. Breathing Activity");
-        Console.WriteLine("2. Reflection Activity");
-        Console.WriteLine("3. Listing Activity");
-        Console.WriteLine("4. Quit");
-        Console.WriteLine("5. Display Activity Log");
-        Console.WriteLine("========================================");
-        Console.Write("Select an activity (1-5): ");
-    }
-
-    static int GetDuration(string activityName)
-    {
-        int duration;
-        while (true)
-        {
-            Console.Write($"Enter the duration in seconds for {activityName}: ");
-            if (int.TryParse(Console.ReadLine(), out duration))
-            {
-                activityLog.Add($"Started {activityName} for {duration} seconds.");
-                return duration;
-            }
-            else
-            {
-                Console.WriteLine("Invalid input. Please enter a valid number.");
-            }
-        }
-    }
-
-    static void Pause(int seconds)
+    protected void ShowCountdown(int seconds)
     {
         for (int i = seconds; i > 0; i--)
         {
-            Console.Write($"{i}... ");
-            Thread.Sleep(1000);
-            Console.Write("\r".PadRight(Console.WindowWidth));
+            Console.WriteLine(i);
+            System.Threading.Thread.Sleep(1000);  // Wait for 1 second
         }
     }
+}
 
-    static void BreathActivity(int duration)
+public class BreathingActivity : ActivityBase
+{
+    public BreathingActivity() : base("Breathing", "This activity will help you relax by walking you through breathing in and out slowly. Clear your mind and focus on your breathing.")
     {
-        Console.WriteLine("This activity will help you relax by guiding you through slow breathing. Clear your mind and focus on your breathing.");
-        Thread.Sleep(2000);
+    }
 
-        DateTime endTime = DateTime.Now.AddSeconds(duration);
-        while (DateTime.Now < endTime)
+    protected override void PerformActivity()
+    {
+        int halfDuration = duration / 2;
+        for (int i = 0; i < halfDuration; i++)
         {
             Console.WriteLine("Breathe in...");
-            AnimateBreathing(4);
+            ShowCountdown(3);  // Count down from 3
             Console.WriteLine("Breathe out...");
-            AnimateBreathing(4);
+            ShowCountdown(3);  // Count down from 3
         }
+    }
+}
 
-        Console.WriteLine("Good job! You have completed the breathing activity.");
-        activityLog.Add("Completed Breathing Activity.");
-        Pause(2);
+public class ReflectionActivity : ActivityBase
+{
+    private static readonly List<string> prompts = new List<string>
+    {
+        "Think of a time when you stood up for someone else.",
+        "Think of a time when you did something really difficult.",
+        "Think of a time when you helped someone in need.",
+        "Think of a time when you did something truly selfless."
+    };
+
+    private static readonly List<string> questions = new List<string>
+    {
+        "Why was this experience meaningful to you?",
+        "Have you ever done anything like this before?",
+        "How did you get started?",
+        "How did you feel when it was complete?",
+        "What made this time different than other times when you were not as successful?",
+        "What is your favorite thing about this experience?",
+        "What could you learn from this experience that applies to other situations?",
+        "What did you learn about yourself through this experience?",
+        "How can you keep this experience in mind in the future?"
+    };
+
+    public ReflectionActivity() : base("Reflection", "This activity will help you reflect on times in your life when you have shown strength and resilience. This will help you recognize the power you have and how you can use it in other aspects of your life.")
+    {
     }
 
-    static void ReflectionActivity(int duration)
+    protected override void PerformActivity()
     {
-        var prompts = new List<string>
-        {
-            "Think of a time when you stood up for someone else.",
-            "Think of a time when you did something really difficult.",
-            "Think of a time when you helped someone in need.",
-            "Think of a time when you did something truly selfless."
-        };
-
-        var questions = new List<string>
-        {
-            "Why was this experience meaningful to you?",
-            "Have you ever done something similar again?",
-            "What did this experience teach you about yourself?",
-            "How can this experience help you in the future?"
-        };
-
-        Console.WriteLine("This activity will help you reflect on times in your life when you have shown strength and resilience.");
-        Thread.Sleep(2000);
-
-        string prompt = GetUniquePrompt(prompts);
-        string question = GetUniqueQuestion(questions);
-
-        Console.WriteLine(prompt);
-        Pause(5);
-
-        foreach (string q in questions)
-        {
-            Console.WriteLine(q);
-            Pause(5);
-        }
-
-        Console.WriteLine("Good job! You have completed the reflection activity.");
-        activityLog.Add("Completed Reflection Activity.");
-        Pause(2);
-    }
-
-    static void ListingActivity(int duration)
-    {
-        Console.WriteLine("This activity will help you think broadly by listing things related to your strengths and positivity.");
-        Thread.Sleep(2000);
-
-        var strengths = new List<string>();
-        Console.WriteLine("Take a moment to list as many strengths or positive attributes about yourself as you can.");
-        Pause(5);
+        Random random = new Random();
+        string selectedPrompt = prompts[random.Next(prompts.Count)];
+        Console.WriteLine(selectedPrompt);
+        ShowSpinner(3);  // Show spinner for 3 seconds
 
         for (int i = 0; i < duration / 5; i++)
         {
-            Console.Write($"Strength #{strengths.Count + 1}: ");
-            string strength = Console.ReadLine();
-            strengths.Add(strength);
+            string selectedQuestion = questions[random.Next(questions.Count)];
+            Console.WriteLine(selectedQuestion);
+            ShowSpinner(5);  // Show spinner for 5 seconds
         }
-
-        Console.WriteLine("You listed the following strengths:");
-        foreach (string strength in strengths)
-        {
-            Console.WriteLine($"- {strength}");
-        }
-
-        Console.WriteLine("Good job! You have completed the listing activity.");
-        activityLog.add("Completed Listing Activity.");
-        Pause(2);
     }
+}
 
-    static void AnimateBreathing(int seconds)
+public class ListingActivity : ActivityBase
+{
+    private static readonly List<string> prompts = new List<string>
     {
-        for (int i = 1; i <= seconds; i++)
-        {
-            int length = (int)(i / (float)seconds * 10);
-            Console.WriteLine(new string('=', length));
-            Thread.Sleep(1000);
-        }
+        "Who are people that you appreciate?",
+        "What are personal strengths of yours?",
+        "Who are people that you have helped this week?",
+        "When have you felt the Holy Ghost this month?",
+        "Who are some of your personal heroes?"
+    };
+
+    public ListingActivity() : base("Listing", "This activity will help you reflect on the good things in your life by having you list as many things as you can in a certain area.")
+    {
     }
 
-    static string GetUniquePrompt(List<string> prompts)
+    protected override void PerformActivity()
     {
         Random random = new Random();
-        string prompt;
-        do
+        string selectedPrompt = prompts[random.Next(prompts.Count)];
+        Console.WriteLine(selectedPrompt);
+        ShowCountdown(5);  // Count down from 5
+
+        int count = 0;
+        DateTime endTime = DateTime.Now.AddSeconds(duration);
+        while (DateTime.Now < endTime)
         {
-            prompt = prompts[random.Next(prompts.Count)];
-        } while (usedPrompts.Contains(prompt) && usedPrompts.Count < prompts.Count);
-
-        usedPrompts.Add(prompt);
-        return prompt;
-    }
-
-    static string GetUniqueQuestion(List<string> questions)
-    {
-        Random random = new Random();
-        string question;
-        do
-        {
-            question = questions[random.Next(questions.Count)];
-        } while (usedQuestions.Contains(question) && usedQuestions.Count < questions.Count);
-
-        usedQuestions.Add(question);
-        return question;
-    }
-
-    static void SaveLog()
-    {
-        File.WriteAllLines("activity_log.txt", activityLog);
-        Console.WriteLine("Activity log saved.");
-    }
-
-    static void DisplayLog()
-    {
-        if (File.Exists("activity_log.txt"))
-        {
-            string[] log = File.ReadAllLines("activity_log.txt");
-            Console.WriteLine("Activity Log:");
-            foreach (string entry in log)
+            Console.WriteLine("Enter an item:");
+            string item = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(item))
             {
-                Console.WriteLine(entry);
+                count++;
             }
         }
-        else
+
+        Console.WriteLine($"You listed {count} items.");
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        while (true)
         {
-            Console.WriteLine("No activity log found.");
+            Console.Clear();
+            Console.WriteLine("Mindfulness Program");
+            Console.WriteLine("1. Breathing Activity");
+            Console.WriteLine("2. Reflection Activity");
+            Console.WriteLine("3. Listing Activity");
+            Console.WriteLine("4. Exit");
+            Console.Write("Choose an activity: ");
+            string choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    new BreathingActivity().StartActivity();
+                    break;
+                case "2":
+                    new ReflectionActivity().StartActivity();
+                    break;
+                case "3":
+                    new ListingActivity().StartActivity();
+                    break;
+                case "4":
+                    return;
+                default:
+                    Console.WriteLine("Invalid choice. Please try again.");
+                    break;
+            }
         }
     }
 }
